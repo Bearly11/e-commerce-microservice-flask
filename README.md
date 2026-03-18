@@ -14,4 +14,5 @@
 
 ## How to run
 pip install -r requirements.txt
-python run.py
+- python app.py (starts the API gateway)
+- python run.py (starts the API server)
