@@ -1,15 +1,36 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # Virtual environment
 .venv/
+venv/
+env/
 
 # Environment variables
 .env
+.env.*
 
 # Database
 *.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Flask
+instance/
+.webassets-cache
+
+# Migrations (optional)
+# Uncomment if you don’t want to track migrations
+# migrations/
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # IDE
 .idea/
