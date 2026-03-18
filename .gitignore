@@ -24,9 +24,6 @@ env/
 instance/
 .webassets-cache
 
-# Migrations (optional)
-# Uncomment if you don’t want to track migrations
-# migrations/
 
 # OS files
 .DS_Store
