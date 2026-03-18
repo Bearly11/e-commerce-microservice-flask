@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from ..services.order_service import (get_all_orders, create_order,get_order_by_id, update_order_status)
 import requests
+from flask_jwt_extended import jwt_required, get_jwt_identity
+import logging
 
 order_bp = Blueprint('order_bp', __name__)
 
@@ -31,36 +33,50 @@ def get_order(order_id):
                     'total_price': product_data.get('price') * order.quantity}), 200
 
 @order_bp.route('/orders', methods=['POST'])
+@jwt_required()
 def add_order():
     data = request.get_json()
-    user_id = data.get('user_id')  # Simulate user authentication
+    user_id = get_jwt_identity()
     product_id = data.get('product_id')
     quantity = data.get('quantity')
 
-    if not user_id or not product_id or quantity is None:
+    if product_id is None or quantity is None:
         return jsonify({'error': 'Product ID and quantity are required'}), 400
     try:
         quantity = int(quantity)
     except ValueError:
         return jsonify({'error': 'Quantity must be an integer'}), 400
 
-    user_response = requests.get(f"{USER_SERVICE_URL}/users/{user_id}")  # Simulate user authentication
-    if user_response.status_code != 200:
-        return jsonify({'error': 'User not found'}), 404
+    logging.info(f"[ORDER] user_id: {user_id}, product_id: {product_id}, quantity: {quantity}")
 
     #Call product service
-    product_response = requests.get(f"{PRODUCT_SERVICE_URL}/{product_id}")
+    try:
+        product_response = requests.get(f"{PRODUCT_SERVICE_URL}/products/{product_id}",
+                                        timeout=3)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error connecting to product service: {e}")
+        return jsonify({'error': 'Product service unavailable'}), 503
+
     if product_response.status_code != 200:
         return jsonify({'error': 'Product not found'}), 404
 
+
+
     product_data = product_response.json()
-    if product_data['stock'] < quantity:
+    if not product_data.get('name') or not product_data.get('price'):
+        return jsonify({'error': 'Invalid product data received'}), 500
+
+    try:
+        reduce_stock = requests.post(f"{PRODUCT_SERVICE_URL}/products/{product_id}/reduce_stock",
+                                     json={'quantity': quantity},
+                                      timeout=3)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error connecting to product service for stock check: {e}")
+        return jsonify({'error': 'Stock service unavailable'}), 503
+
+    if reduce_stock.status_code != 200:
         return jsonify({'error': 'Not enough stock'}), 400
 
-    reduce_stock=requests.post(f"{PRODUCT_SERVICE_URL}/{product_id}/reduce_stock",
-                               json={'quantity': quantity})
-    if reduce_stock.status_code != 200:
-        return jsonify({'error': 'Failed to reduce stock'}), 500
 
     product_name = product_data.get('name')
     total_price = product_data.get('price') * quantity

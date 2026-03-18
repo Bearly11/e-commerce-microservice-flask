@@ -4,9 +4,9 @@ import requests
 app = Flask(__name__)
 
 SERVICES = {
-    "products": "http://localhost:5000",
-    "orders": "http://localhost:5001",
-    "users": "http://localhost:5002",
+    "products": "http://product-service:5000",
+    "orders": "http://order-service:5001",
+    "users": "http://user-service:5002",
 }
 
 
