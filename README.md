@@ -37,6 +37,16 @@ This project implements secure JWT authentication:
    - Refresh token is revoked
    - Cannot be reused
 
+5. **Login Success**
+   - User can view products
+   - User can order products
+   
+6. **Order Logic and Stock Logic**
+   - Order -> Pending -> reduce stock (Pending is under 10 minutes)
+   - If order is not completed within 10 minutes -> Cancelled -> stock is restored
+   - Payment Success -> Completed 
+   - Payment Failure -> Cancelled -> stock is restored
+
 ---
 
 ## 🔄 Token Features
