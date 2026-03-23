@@ -1,8 +1,11 @@
+
 from ..extensions import db, text
 from ..models.product import Product
 from werkzeug.utils import secure_filename
 import os
 import uuid
+
+
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -98,3 +101,45 @@ def add_product_stock(product_id, quantity):
     product.stock += quantity
     db.session.commit()
     return product.stock
+
+def reserved_product_stock(product_id,quantity):
+    product = get_product_by_id(product_id)
+    if not product or product.stock < quantity:
+        return False
+    product.stock -= quantity
+    product.reserved_stock += quantity
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return False
+
+    return product.reserved_stock
+
+def release_product_stock(product_id,quantity):
+    product =get_product_by_id(product_id)
+    if not product:
+        return False
+    if product.reserved_stock < quantity:
+        return False
+    product.reserved_stock -= quantity
+    product.stock += quantity
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return False
+    return True
+def confirm_product_stock(product_id,quantity):
+    product = get_product_by_id(product_id)
+    if not product or product.reserved_stock < quantity:
+        return False
+    product.reserved_stock -= quantity
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return False
+    return True

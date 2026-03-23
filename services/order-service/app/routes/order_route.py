@@ -6,8 +6,8 @@ import logging
 
 order_bp = Blueprint('order_bp', __name__)
 
-PRODUCT_SERVICE_URL = 'http://localhost:5001/products'
-USER_SERVICE_URL = 'http://localhost:5002/users'
+PRODUCT_SERVICE_URL = 'http://product_service:5000'
+USER_SERVICE_URL = 'http://user_service:5002'
 
 @order_bp.route('/orders', methods=['GET'])
 def list_orders():
@@ -67,14 +67,14 @@ def add_order():
         return jsonify({'error': 'Invalid product data received'}), 500
 
     try:
-        reduce_stock = requests.post(f"{PRODUCT_SERVICE_URL}/products/{product_id}/reduce_stock",
+        reserved_stock = requests.post(f"{PRODUCT_SERVICE_URL}/products/{product_id}/reserved_stock",
                                      json={'quantity': quantity},
                                       timeout=3)
     except requests.exceptions.RequestException as e:
         logging.error(f"Error connecting to product service for stock check: {e}")
         return jsonify({'error': 'Stock service unavailable'}), 503
 
-    if reduce_stock.status_code != 200:
+    if reserved_stock.status_code != 200:
         return jsonify({'error': 'Not enough stock'}), 400
 
 
@@ -94,10 +94,11 @@ def confirm_order(order_id):
 
     if order.status != 'pending':
         return jsonify({'error': 'Orders cannot be confirmed'}), 400
-    stock_reduce=requests.post(f"{PRODUCT_SERVICE_URL}/{order.product_id}/reduce_stock",
-                               json={'quantity': order.quantity})
-    if stock_reduce.status_code != 200:
-        return jsonify({'error': 'Failed to reduce stock'}), 500
+
+    requests.post(
+        f"{PRODUCT_SERVICE_URL}/products/{order.product_id}/confirm_stock",
+        json={'quantity': order.quantity}
+    )
 
     order.status = 'confirmed'
     update_order_status(order_id, 'confirmed')
@@ -118,10 +119,12 @@ def cancel_order(order_id):
     if not order:
         return jsonify({'error': 'Order not found'}), 404
 
-    if order.status == 'cancelled':
-        return jsonify({'error': 'Order is already cancelled'}), 400
+    if order.status == 'confirmed':
+        return jsonify({
+            'message':'Cannot cancel confirm order'
+        }),400
 
-    requests.post(f"{PRODUCT_SERVICE_URL}/{order.product_id}/add_stock",
+    requests.post(f"{PRODUCT_SERVICE_URL}/products/{order.product_id}/release_stock",
                   json={'quantity': order.quantity})
     order.status = 'cancelled'
     update_order_status(order_id, 'cancelled')
@@ -144,7 +147,7 @@ def get_order_detail(order_id):
     if not order:
         return jsonify({'error': 'Order not found'}), 404
 
-    product_response = requests.get(f"{PRODUCT_SERVICE_URL}/{order.product_id}")
+    product_response = requests.get(f"{PRODUCT_SERVICE_URL}/products/{order.product_id}")
     if product_response.status_code != 200:
         return jsonify({'error': 'Product not found'}), 404
 

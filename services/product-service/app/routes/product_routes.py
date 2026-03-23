@@ -3,7 +3,8 @@ from ..services.product_service import (get_all_products, create_product,
                                         get_product_by_id, update_product,
                                         delete_product, get_product_by_name,
                                         reduce_product_stock, add_product_stock,
-                                        save_product_image)
+                                        save_product_image, reserved_product_stock, release_product_stock,
+                                        confirm_product_stock)
 
 product_bp = Blueprint('product_bp', __name__)
 
@@ -144,6 +145,86 @@ def add_stock(product_id):
     if new_stock is False:
         return jsonify({'error': 'Product not found'}), 404
     return jsonify({'message': 'Stock added', 'new_stock': new_stock}), 200
+
+@product_bp.route('/<int:product_id>/reserved_stock', methods=['POST'])
+def reserved_stock(product_id):
+    data = request.get_json()
+    quantity = data.get('quantity')
+    product = get_product_by_id(product_id)
+
+    if quantity is None:
+        return jsonify({
+            'error':'Quantity is required'
+        }),400
+    if not product:
+        return jsonify({
+            'error':'Product is required'
+        }),400
+
+    try:
+        quantity = int(quantity)
+    except ValueError:
+        return jsonify({
+            'error':'Quantity must be integer'
+        }),400
+
+    reserved_stocks = reserved_product_stock(product_id, quantity)
+    if reserved_stocks is False:
+        return jsonify({
+            'error':'reserved_stock error'
+        }),400
+
+    return jsonify({
+        'message':'success',
+        'reserved_stock':reserved_stocks
+    }),200
+
+@product_bp.route('/<int:product_id>/release_stock', methods=['POST'])
+def release_stock(product_id):
+    data = request.get_json()
+    quantity = data.get('quantity')
+    product = get_product_by_id(product_id)
+
+    if quantity is None:
+        return jsonify({
+            'error':'Quantity is required'
+        }),400
+    if not product:
+        return jsonify({
+            'error':'Product is required'
+        }),400
+
+    try:
+        quantity = int(quantity)
+    except ValueError:
+        return jsonify({
+            'error':'Quantity must be integer'
+        }),400
+
+    release_stocks = release_product_stock(product_id, quantity)
+    if release_stocks is False:
+        return jsonify({
+            'error':'reserved_stock error'
+        }),400
+
+    return jsonify({
+        'message':'release stock success'
+    }),200
+
+@product_bp.route('/<int:product_id>/confirm_stock', methods=['POST'])
+def confirm_stock(product_id):
+    data = request.get_json()
+    quantity = data.get('quantity')
+
+    success = confirm_product_stock(product_id, quantity)
+    if not success:
+        return jsonify({
+            'error':'confirm failed'
+        }),400
+
+    return jsonify({
+        'message':'Confirm success'
+    }),200
 
 
 @product_bp.route('/debug_upload_image', methods=['POST'])

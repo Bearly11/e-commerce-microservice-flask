@@ -41,3 +41,4 @@ def expire_orders():
                       json={'quantity': order.quantity})
         order.status = 'cancelled'
     db.session.commit()
+
