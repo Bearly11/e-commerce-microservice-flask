@@ -5,17 +5,19 @@ services:
   user-service:
     build: ./services/user-service
     ports:
-      - "5002:5002"
+      - "8001:5000"
 
   product-service:
     build: ./services/product-service
     ports:
-      - "5000:5000"
+      - "8002:5000"
+    volumes:
+      - ./services/product-service:/app
 
   order-service:
     build: ./services/order-service
     ports:
-      - "5001:5001"
+      - "8003:5000"
     depends_on:
       - product-service
       - user-service

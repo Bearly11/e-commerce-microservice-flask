@@ -17,20 +17,32 @@ def gateway(service, path=""):
         return {"error": "Service not found"}, 404
 
     service_url = SERVICES[service]
-    if path:
-        url = f"{service_url}/{service}/{path}"
-    else:
-        url = f"{service_url}/{service}"
 
-    response = requests.request(
-        method=request.method,
-        url=url,
-        json=request.get_json(silent=True),
-        params=request.args
-    )
+
+    url = f"{service_url}/{path}" if path else service_url
+
+    if request.files:
+        files = {}
+        for key, file in request.files.items():
+            files[key] = (file.filename, file.stream, file.content_type)
+
+        response = requests.request(
+            method=request.method,
+            url=url,
+            files=files,
+            data=request.form,
+            params=request.args
+        )
+    else:
+        response = requests.request(
+            method=request.method,
+            url=url,
+            json=request.get_json(silent=True),
+            params=request.args
+        )
 
     return Response(response.content, status=response.status_code)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=8080)
+    app.run(host="0.0.0.0",port=8080, debug=True)
