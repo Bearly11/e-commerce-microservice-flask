@@ -9,14 +9,14 @@ order_bp = Blueprint('order_bp', __name__)
 PRODUCT_SERVICE_URL = 'http://product_service:5000'
 USER_SERVICE_URL = 'http://user_service:5002'
 
-@order_bp.route('/orders', methods=['GET'])
+@order_bp.route('/', methods=['GET'])
 def list_orders():
     orders = get_all_orders()
     return jsonify({'message': 'Orders retrieved',
                     'orders': [{'id': o.id, 'product_id': o.product_id,
                                 'quantity': o.quantity} for o in orders]}), 200
 
-@order_bp.route('/orders/<int:order_id>', methods=['GET'])
+@order_bp.route('/<int:order_id>', methods=['GET'])
 def get_order(order_id):
     order = get_order_by_id(order_id)
     if not order:
@@ -32,7 +32,7 @@ def get_order(order_id):
                     'quantity': order.quantity, 'product_name': product_data.get('name'),
                     'total_price': product_data.get('price') * order.quantity}), 200
 
-@order_bp.route('/orders', methods=['POST'])
+@order_bp.route('/', methods=['POST'])
 @jwt_required()
 def add_order():
     data = request.get_json()
@@ -86,7 +86,7 @@ def add_order():
                     'order': {'id': new_order.id, 'product_id': new_order.product_id,
                                'quantity': new_order.quantity}}), 201
 
-@order_bp.route('/orders/<int:order_id>/confirm', methods=['POST'])
+@order_bp.route('/<int:order_id>/confirm', methods=['POST'])
 def confirm_order(order_id):
     order = get_order_by_id(order_id)
     if not order:
@@ -113,7 +113,7 @@ def confirm_order(order_id):
                         'status':order.status
                     }}), 200
 
-@order_bp.route('/orders/<int:order_id>/cancel', methods=['POST'])
+@order_bp.route('/<int:order_id>/cancel', methods=['POST'])
 def cancel_order(order_id):
     order = get_order_by_id(order_id)
     if not order:

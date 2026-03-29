@@ -8,14 +8,14 @@ from flask_jwt_extended import (create_access_token,
 user_bp = Blueprint('user_bp', __name__)
 
 
-@user_bp.route('/users', methods=['GET'])
+@user_bp.route('/', methods=['GET'])
 def list_users():
     users = UserService.get_all_users()
     return jsonify({'message': 'Users retrieved',
                     'users': [{'id': u.id, 'name': u.name, 'email': u.email} for u in users]}), 200
 
 
-@user_bp.route('/users', methods=['POST'])
+@user_bp.route('/', methods=['POST'])
 def add_user():
     data = request.get_json()
     name = data.get('name')
@@ -34,7 +34,7 @@ def add_user():
                     'user': {'id': new_user.id, 'name': new_user.name, 'email': new_user.email}}), 201
 
 
-@user_bp.route('/users/<int:user_id>', methods=['GET'])
+@user_bp.route('/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = UserService.get_user_by_id(user_id)
     if not user:
@@ -42,7 +42,7 @@ def get_user(user_id):
     return jsonify({'id': user.id, 'name': user.name, 'email': user.email}), 200
 
 
-@user_bp.route('/users/<int:user_id>', methods=['PUT'])
+@user_bp.route('/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     data = request.get_json()
     name = data.get('name')
@@ -61,14 +61,14 @@ def update_user(user_id):
                              'name': updated_user.name, 'email': updated_user.email}}), 200
 
 
-@user_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@user_bp.route('/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     if not UserService.delete_user(user_id):
         return jsonify({'error': 'User not found'}), 404
     return jsonify({'message': 'User deleted'}), 200
 
 
-@user_bp.route('/users/<int:user_id>/reset_password', methods=['POST'])
+@user_bp.route('/<int:user_id>/reset_password', methods=['POST'])
 def reset_password(user_id):
     data = request.get_json()
     new_password = data.get('new_password')
