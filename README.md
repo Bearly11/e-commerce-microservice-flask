@@ -70,6 +70,39 @@ This project implements secure JWT authentication:
 ---
 
 ## 🚀 How to Run
+- Make sure you have Python 3.X.X installed
+- Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+- API Gateway service:
+```bash
+cd api_gateway  
+python app.py
+```
+- User Service:
+```bash
+cd services
+cd user_service
+python run.py
+```
+- Product Service:
+```bash
+cd services
+cd product_service
+python run.py
+```
+- Order Service:
+```bash
+cd services
+cd order_service
+python run.py
+```
+- You can also use Docker to run the services together:
+```bash
+docker-compose up --build  
+```
+---
 
 ### 1. Clone the repository
 ```bash
