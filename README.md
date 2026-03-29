@@ -65,6 +65,7 @@ This project implements secure JWT authentication:
 - Flask-SQLAlchemy
 - Flask-Migrate
 - SQLite
+- Docker
 
 ---
 

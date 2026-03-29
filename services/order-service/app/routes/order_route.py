@@ -23,7 +23,7 @@ def get_order(order_id):
         return jsonify({'error': 'Order not found'}), 404
 
     #Call product service to get product details
-    product_response = requests.get(f"{PRODUCT_SERVICE_URL}/{order.product_id}")
+    product_response = requests.get(f"{PRODUCT_SERVICE_URL}/products/{order.product_id}")
     if product_response.status_code != 200:
         return jsonify({'error': 'Product not found'}), 404
 
